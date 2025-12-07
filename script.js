@@ -309,40 +309,69 @@ setInterval(() => {
 
 // Tomar selfie
 function takeSelfie() {
+    // Ocultar partículas (si existen, html2canvas falla con canvas externos)
+    const particles = document.getElementById("particles-js");
+    if (particles) particles.style.display = "none";
 
-    // 1. Crear contenedor temporal para capturar
+    // 1. Crear un contenedor temporal fuera de pantalla
     const temp = document.createElement("div");
     temp.style.position = "absolute";
-    temp.style.top = "-9999px"; // fuera de pantalla
+    temp.style.top = "-9999px";
     temp.style.left = "-9999px";
+    temp.style.background = "transparent";
 
-    // 2. Agregar los elementos que quieres capturar
-    const bmo = document.querySelector(".bmo-screen").cloneNode(true);
-    const controles = document.querySelector(".controls").cloneNode(true);
-    const stats = document.querySelector(".stats").cloneNode(true);
+    // 2. Clonar los elementos si existen
+    const elementosAClonar = [
+        ".bmo-screen",
+        ".controls",
+        ".stats"
+    ];
 
-    temp.appendChild(bmo);
-    temp.appendChild(controles);
-    temp.appendChild(stats);
+    elementosAClonar.forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) {
+            temp.appendChild(el.cloneNode(true));
+        } else {
+            console.warn("No existe el elemento:", sel);
+        }
+    });
 
-    // 3. Meterlo al body temporalmente
+    // 3. Agregar el contenedor temporal al body
     document.body.appendChild(temp);
 
-    // 4. Capturar ese contenedor
-    html2canvas(temp).then(canvas => {
-
-        // 5. Descargar imagen
+    // 4. Capturar el contenedor temporal
+    html2canvas(temp, {
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
+    })
+    .then(canvas => {
+        // 5. Descargar como imagen PNG
         canvas.toBlob(blob => {
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "captura.png";
+            link.download = "cyberpet-selfie.png";
             link.click();
         });
 
         // 6. Eliminar contenedor temporal
         temp.remove();
+
+        // Restaurar partículas
+        if (particles) particles.style.display = "block";
+    })
+    .catch(err => {
+        console.error("Error en captura:", err);
+        alert("No se pudo tomar la captura. Revisa la consola.");
+
+        // Restaurar partículas
+        if (particles) particles.style.display = "block";
+
+        temp.remove();
     });
 }
+
 
 
 
@@ -3939,4 +3968,5 @@ helpClose.onclick = () => {
 helpModal.onclick = (e) => {
     if (e.target === helpModal) helpModal.style.display = "none";
 };
+
 
