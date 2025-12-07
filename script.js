@@ -309,34 +309,41 @@ setInterval(() => {
 
 // Tomar selfie
 function takeSelfie() {
-    const area = document.getElementById("captureArea");
 
-    // Ocultar partículas (causan errores)
-    const particles = document.getElementById("particles-js");
-    particles.style.display = "none";
+    // 1. Crear contenedor temporal para capturar
+    const temp = document.createElement("div");
+    temp.style.position = "absolute";
+    temp.style.top = "-9999px"; // fuera de pantalla
+    temp.style.left = "-9999px";
 
-    setTimeout(() => {
-        html2canvas(area, {
-            scale: 1,
-            useCORS: true,
-            allowTaint: true
-        }).then(canvas => {
+    // 2. Agregar los elementos que quieres capturar
+    const bmo = document.querySelector(".bmo-screen").cloneNode(true);
+    const controles = document.querySelector(".controls").cloneNode(true);
+    const stats = document.querySelector(".stats").cloneNode(true);
 
-            particles.style.display = "block"; // volver a mostrar
+    temp.appendChild(bmo);
+    temp.appendChild(controles);
+    temp.appendChild(stats);
 
-            canvas.toBlob(blob => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'cyberpet-selfie.png';
-                link.click();
-            });
-        }).catch(err => {
-            console.error(err);
-            alert("No se pudo tomar la captura.");
-            particles.style.display = "block";
+    // 3. Meterlo al body temporalmente
+    document.body.appendChild(temp);
+
+    // 4. Capturar ese contenedor
+    html2canvas(temp).then(canvas => {
+
+        // 5. Descargar imagen
+        canvas.toBlob(blob => {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "captura.png";
+            link.click();
         });
-    }, 300);
+
+        // 6. Eliminar contenedor temporal
+        temp.remove();
+    });
 }
+
 
 
 // Cancelar arrastre al hacer click
@@ -3932,3 +3939,4 @@ helpClose.onclick = () => {
 helpModal.onclick = (e) => {
     if (e.target === helpModal) helpModal.style.display = "none";
 };
+
